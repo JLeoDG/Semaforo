@@ -1,0 +1,116 @@
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x3F,20,4);
+
+byte monito_uno[8] = {
+    B01110,
+    B01010,
+    B01110,
+    B00100,
+    B11111,
+    B00100,
+    B01010,
+    B10001
+};
+
+byte monito_dos[8] = {
+    B01110,
+    B01010,
+    B01110,
+    B00100,
+    B01110,
+    B10101,
+    B01010,
+    B01010
+};
+
+const int  verde = 9;
+const int  amarillo = 8;
+const int  rojo = 7;
+const int  button = 4;
+
+int EstadoButton = 0;
+int EnRojo = 0;
+int EnVerde = 0;
+int potenciometro = 2;
+int tiempo_peatones = 0;
+
+void peatones(int duracion){
+ lcd.clear();
+ lcd.setCursor(3,1);
+ lcd.print("AVANZA"); 
+ EnRojo = 0;
+ digitalWrite(rojo, HIGH);
+ 
+ while (EnRojo < duracion){
+   lcd.createChar(0, monito_uno); 
+   lcd.setCursor(10, 1);
+   lcd.write(0);
+   delay(500);
+   lcd.createChar(0, monito_dos); 
+   lcd.setCursor(10,1);
+   lcd.write(0);
+   delay(500);
+   EnRojo += 1000;
+ }
+ digitalWrite(rojo, LOW);
+ lcd.setCursor(2,1);
+ lcd.print("DETENTE");
+ EnVerde = 0;
+}
+
+void ambar(){
+    lcd.setCursor(1,1);
+    lcd.print("PREPARATE");
+    digitalWrite(amarillo, HIGH);
+    delay(1000);
+    digitalWrite(amarillo, LOW);
+    delay(500);
+    digitalWrite(amarillo, HIGH);
+    delay(1000);
+    digitalWrite(amarillo, LOW);
+    delay(500);
+    digitalWrite(amarillo, HIGH);
+    delay(1000);
+    digitalWrite(amarillo, LOW);
+    delay(500);
+    digitalWrite(amarillo, HIGH);
+    delay(1000);
+    digitalWrite(amarillo, LOW); 
+    tiempo_peatones = analogRead(potenciometro);
+    peatones(tiempo_peatones * 10);
+}
+
+void setup() {
+  pinMode(verde, OUTPUT);
+  pinMode(amarillo, OUTPUT);
+  pinMode(rojo, OUTPUT);
+  pinMode(button, INPUT);
+  
+  lcd.backlight();
+  lcd.init(); 
+  lcd.clear();
+
+  lcd.setCursor(2,1);
+  lcd.print("DETENTE");
+
+  lcd.createChar(0, monito_dos); 
+  lcd.setCursor(10,1);
+  lcd.write(0);
+}
+
+void loop() {
+    while (EnVerde < 10000) {
+      digitalWrite(verde, HIGH);
+      delay(1000);      
+      EstadoButton =  digitalRead(button);
+      if (EstadoButton == HIGH) {
+        EnVerde = 10000;      
+      }
+      EnVerde += 1000;
+    }
+    
+
+    
+    digitalWrite(verde, LOW);
+    ambar();
+}
